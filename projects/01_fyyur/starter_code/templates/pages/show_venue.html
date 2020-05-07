@@ -46,6 +46,27 @@
 		<img src="{{ venue.image_link }}" alt="Venue Image" />
 	</div>
 </div>
+
+<section>
+	<button class="delete-venue btn btn-primary" id="{{ venue.id }}">Delete Venue</button> <br><br> 
+	<script>
+                const deleteBtn = document.querySelector('.delete-venue');
+    		deleteBtn.onclick = function(e) {
+			fetch('/venues/'+{{ venue.id }}, {
+      				method:'DELETE',
+      			})
+			.then (function(response) {
+  				window.location.replace("http://localhost:5000/");
+			});
+    		}
+	</script>
+	<form class="form" action="/venues/{{ venue.id }}/edit" method="get">
+		<input type="submit" value="Edit Venue" class="btn btn-primary ">
+        </form>
+
+</section>
+
+
 <section>
 	<h2 class="monospace">{{ venue.upcoming_shows_count }} Upcoming {% if venue.upcoming_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
 	<div class="row">
@@ -74,6 +95,8 @@
 		{% endfor %}
 	</div>
 </section>
+
+
 
 {% endblock %}
 

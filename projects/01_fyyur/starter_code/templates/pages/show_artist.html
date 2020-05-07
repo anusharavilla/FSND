@@ -43,6 +43,26 @@
 		<img src="{{ artist.image_link }}" alt="Venue Image" />
 	</div>
 </div>
+
+<section>
+	<button class="delete-artist btn btn-primary" id="{{ artist.id }}">Delete Artist</button> <br><br> 
+	<script>
+                const deleteBtn = document.querySelector('.delete-artist');
+    		deleteBtn.onclick = function(e) {
+			fetch('/artists/'+{{ artist.id }}, {
+      				method:'DELETE',
+      			})
+			.then (function(response) {
+  				window.location.replace("http://localhost:5000/");
+				alert("Artist Deleted");
+			});
+    		}
+	</script>
+	<form class="form" action="/artists/{{ artist.id }}/edit" method="get">
+		<input type="submit" value="Edit Artist" class="btn btn-primary ">
+        </form>
+
+</section>
 <section>
 	<h2 class="monospace">{{ artist.upcoming_shows_count }} Upcoming {% if artist.upcoming_shows_count == 1 %}Show{% else %}Shows{% endif %}</h2>
 	<div class="row">
