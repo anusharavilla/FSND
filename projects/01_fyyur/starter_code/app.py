@@ -204,12 +204,12 @@ def create_venue_submission():
     phone = request.form['phone']
     facebook_link = request.form['facebook_link']
     data = Venue(name=name, city=city, state=state, address=address, phone=phone, facebook_link=facebook_link)
-    dataG = request.form['genres']
-    #print ("genre_data",dataG)
     db.session.add(data)
     db.session.flush()
-    genre_data = Genres(genre=dataG, venue_id=data.id) ##  need to know how to add multiple genres
-    db.session.add(genre_data)
+    for genre in request.form.getlist('genres'): 
+      print (genre)
+      genre_data = Genres(genre=genre, venue_id=data.id)
+      db.session.add(genre_data)
     db.session.commit()
     db.session.close()
   except:
@@ -262,6 +262,11 @@ def edit_venue_submission(venue_id):
     #data.seeking_description = request.form['seeking_description']
     #data.website = request.form['website']
     #data.image_link = request.form['image_link']
+    delGenres = Genres.query.filter_by(id=venue_id).all()
+    db.session.delete(delGenres)
+    for genre in request.form.getlist('genres'): 
+      genre_data = Genres(genre=genre, venue_id=venue_id)
+      db.session.add(genre_data)
     db.session.commit()
     db.session.close()
   except:
@@ -319,7 +324,7 @@ def show_artist(artist_id):
 
 @app.route('/artists/create', methods=['GET'])
 def create_artist_form():
-  form = VenueForm()
+  form = ArtistForm()
   return render_template('forms/new_artist.html', form=form)
 
 @app.route('/artists/create', methods=['POST'])
@@ -334,6 +339,11 @@ def create_artist_submission():
     facebook_link = request.form['facebook_link']
     data = Artist(name=name, city=city, state=state, phone=phone, facebook_link=facebook_link)# , address=address)
     db.session.add(data)
+    db.session.flush()
+    for genre in request.form.getlist('genres'): 
+      print (genre)
+      genre_data = Artist_Genres(genre=genre, artist_id=data.id)
+      db.session.add(genre_data)
     db.session.commit()
     db.session.close()
   except:
@@ -347,6 +357,7 @@ def create_artist_submission():
 
   return render_template('pages/home.html', error=error)
 
+
 #  Update
 #  ----------------------------------------------------------------
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
@@ -358,8 +369,6 @@ def edit_artist(artist_id):
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  # TODO: take values from the form submitted, and update existing
-  # artist record with ID <artist_id> using the new attributes
   error = None
   try:
     data = Artist.query.get(artist_id)
@@ -373,6 +382,11 @@ def edit_artist_submission(artist_id):
     #data.seeking_description = request.form['seeking_description']
     #data.website = request.form['website']
     #data.image_link = request.form['image_link']
+    delGenres = Artist_Genres.query.filter_by(id=artist_id).all()
+    db.session.delete(delGenres)
+    for genre in request.form.getlist('genres'): 
+      genre_data = Artist_Genres(genre=genre, artist_id=artist_id)
+      db.session.add(genre_data)
     db.session.commit()
     db.session.close()
   except:
@@ -399,7 +413,7 @@ def delete_artist(artist_id):
   finally:
     db.session.close()
 
-  return error #render_template('pages/home.html', error=error)
+  return error
 
 #  Shows
 #  ----------------------------------------------------------------
@@ -464,6 +478,10 @@ def create_show_submission():
   # e.g., flash('An error occurred. Show could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
   return render_template('pages/home.html')
+
+
+#------------end of shows -----------------------------------------#
+
 
 @app.errorhandler(404)
 def not_found_error(error):
