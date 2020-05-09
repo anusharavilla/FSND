@@ -126,10 +126,12 @@ def output_format(input_list, venAr):
     elem_show_format['id'] = elem.id
     elem_show_format['name'] = elem.name
     start_time = now_string()
-    if venAr:
+    if venAr==1:
       elem_show_format['num_upcoming_shows'] = Shows.query.filter(Shows.venue_id==elem.id, Shows.start_time>start_time ).count()
-    else:
+    elif venAr==0:
       elem_show_format['num_upcoming_shows'] = Shows.query.filter(Shows.artist_id==elem.id, Shows.start_time>start_time ).count()
+    else:
+      elem_show_format['start_time'] = format_datetime(elem.start_time)
     return_list.append(elem_show_format)
 
   return return_list
@@ -481,26 +483,23 @@ def search_shows():
   response = {}
   search_term = request.form.get('search_term', '')
   start_time = now_string()
-  past_shows_artist = Shows.query.join(Artist, Shows.artist_id==Artist.id).with_entities(Artist.id.label('artist_id'),Shows.start_time,Artist.name.label('artist_name'),Artist.image_link.label('artist_image_link')).filter(Shows.start_time<=start_time, filter( func.lower(Artist.name).like('%'+func.lower(search_term)+'%') ) ).all()
-  upcoming_shows_artist = Shows.query.join(Artist, Shows.artist_id==Artist.id).with_entities(Artist.id.label('artist_id'),Shows.start_time,Artist.name.label('artist_name'),Artist.image_link.label('artist_image_link')).filter(Shows.start_time>start_time, filter( func.lower(Artist.name).like('%'+func.lower(search_term)+'%') ) ).all()
+  past_shows_artist = Shows.query.join(Artist, Shows.artist_id==Artist.id).with_entities(Artist.id.label('id'),Shows.start_time.label('start_time'),Artist.name.label('name')).filter(Shows.start_time<=start_time, func.lower(Artist.name).like('%'+func.lower(search_term)+'%') ).all()
+  upcoming_shows_artist = Shows.query.join(Artist, Shows.artist_id==Artist.id).with_entities(Artist.id.label('id'),Shows.start_time.label('start_time'),Artist.name.label('name')).filter(Shows.start_time>start_time, func.lower(Artist.name).like('%'+func.lower(search_term)+'%') ).all()
  
-  past_shows_venue = Shows.query.join(Venue, Shows.venue_id==Venue.id).with_entities(Venue.id.label('venue_id'),Shows.start_time,Venue.name.label('venue_name'),Venue.image_link.label('venue_image_link')).filter(Shows.start_time<=start_time, filter( func.lower(Venue.name).like('%'+func.lower(search_term)+'%') ) ).all()
-  upcoming_shows_venue = Shows.query.join(Venue, Shows.venue_id==Venue.id).with_entities(Venue.id.label('venue_id'),Shows.start_time,Venue.name.label('venue_name'),Venue.image_link.label('venue_image_link')).filter(Shows.start_time>start_time, filter( func.lower(Venue.name).like('%'+func.lower(search_term)+'%') ) ).all()
+  past_shows_venue = Shows.query.join(Venue, Shows.venue_id==Venue.id).with_entities(Venue.id.label('id'),Shows.start_time.label('start_time'),Venue.name.label('name')).filter(Shows.start_time<=start_time, func.lower(Venue.name).like('%'+func.lower(search_term)+'%') ).all()
+  upcoming_shows_venue = Shows.query.join(Venue, Shows.venue_id==Venue.id).with_entities(Venue.id.label('id'),Shows.start_time.label('start_time'),Venue.name.label('name')).filter(Shows.start_time>start_time, func.lower(Venue.name).like('%'+func.lower(search_term)+'%') ).all()
  
   response = {}
   if past_shows_venue:
-    response['past_count_venue'] = len(past_shows_venue)
-    response['past_venue_data'] = output_format(past_shows_venue,1)
+    response['past_venue_data'] = output_format(past_shows_venue,2)
   if upcoming_shows_venue:
-    response['upcoming_count_venue'] = len(upcoming_shows_venue)
-    response['upcoming_venue_data'] = output_format(upcoming_shows_venue,1)
+    response['upcoming_venue_data'] = output_format(upcoming_shows_venue,2)
   if past_shows_artist:
-    response['past_count_artist'] = len(past_shows_artist)
-    response['past_artist_data'] = output_format(past_shows_artist,0)
+    response['past_artist_data'] = output_format(past_shows_artist,2)
   if upcoming_shows_artist:
-    response['upcoming_count_artist'] = len(upcoming_shows_artist)
-    response['upcoming_artist_data'] = output_format(upcoming_shows_artist,0)
- 
+    response['upcoming_artist_data'] = output_format(upcoming_shows_artist,2)
+  response['past_shows_count'] = len(past_shows_venue) + len(past_shows_artist)
+  response['upcoming_shows_count'] = len(upcoming_shows_artist) + len(upcoming_shows_venue)
   return render_template('pages/search_shows.html', results=response, search_term=search_term)
 
 
