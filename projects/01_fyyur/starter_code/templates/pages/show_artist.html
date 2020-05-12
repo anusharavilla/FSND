@@ -54,7 +54,10 @@
       			})
 			.then (function(response) {
   				window.location.replace("http://localhost:5000/");
-				alert("Artist Deleted");
+				if(response.success==false){ alert("Deletion not successful"); }
+				else{
+					alert("Artist Deleted");
+				}
 			});
     		}
 	</script>
