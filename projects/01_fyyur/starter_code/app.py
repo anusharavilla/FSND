@@ -201,11 +201,11 @@ def create_venue_submission():
                 phone=request.form['phone'], 
                 facebook_link=request.form['facebook_link'], 
                 image_link=request.form['image_link'],
-                website=request.form['website']
+                website=request.form['website'],
+                seeking_description = request.form['seeking_description']
                 )
-    if ('seeking_talent' in request.form) and (request.form['seeking_talent'] == 'y'):
+    if(request.form['seeking_talent'] == 'y'):
       data.seeking_talent = True
-      data.seeking_description = request.form['seeking_description']
     db.session.add(data)
     db.session.flush()
     for genre in request.form.getlist('genres'): 
@@ -225,18 +225,19 @@ def create_venue_submission():
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
-  error = False
+
   try:
     objDel = Venue.query.filter_by(id=venue_id).first() 
     db.session.delete(objDel)
     db.session.commit()
+    flash("The venue was deleted successfully")
   except:
-    error=True
+    flash("Something went wrong, the venue couldn't be deleted")
     db.session.rollback()
   finally:
     db.session.close()
 
-  return error
+  return None
 
     
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
@@ -259,12 +260,11 @@ def edit_venue_submission(venue_id):
     data.address = request.form['address']
     data.phone = request.form['phone']
     data.facebook_link = request.form['facebook_link']
+    if(request.form['seeking_talent'] == 'y'):
+      data.seeking_talent = True
+    data.seeking_description = request.form['seeking_description']
     data.website = request.form['website']
     data.image_link = request.form['image_link']
-    if ('seeking_talent' in request.form) and (request.form['seeking_talent'] == 'y'):
-      data.seeking_talent = True
-      data.seeking_description = request.form['seeking_description']
-    
     delGenres = Genres.query.filter_by(id=venue_id).all()
     db.session.delete(delGenres)
     for genre in request.form.getlist('genres'): 
@@ -339,14 +339,15 @@ def create_artist_submission():
                 phone=request.form['phone'], 
                 facebook_link=request.form['facebook_link'], 
                 image_link=request.form['image_link'],
-                website=request.form['website'],     
+                website=request.form['website'],
+                seeking_description = request.form['seeking_description']
                 )
-    if ('seeking_venue' in request.form) and (request.form['seeking_venue'] == 'y'):
+    if(request.form['seeking_venue'] == 'y'):
       data.seeking_venue = True
-      data.seeking_description = request.form['seeking_description']
     db.session.add(data)
     db.session.flush()
     for genre in request.form.getlist('genres'): 
+      print (genre)
       genre_data = Artist_Genres(genre=genre, artist_id=data.id)
       db.session.add(genre_data)
     db.session.commit()
@@ -382,12 +383,11 @@ def edit_artist_submission(artist_id):
     data.state = request.form['state']
     data.phone = request.form['phone']
     data.facebook_link = request.form['facebook_link']
+    if(request.form['seeking_venue'] == 'y'):
+      data.seeking_venue = True
+    data.seeking_description = request.form['seeking_description']
     data.website = request.form['website']
     data.image_link = request.form['image_link']
-    if ('seeking_venue' in request.form) and (request.form['seeking_venue'] == 'y'):
-      data.seeking_venue = True
-      data.seeking_description = request.form['seeking_description']
-
     delGenres = Artist_Genres.query.filter_by(id=artist_id).all()
     db.session.delete(delGenres)
     for genre in request.form.getlist('genres'): 
@@ -406,20 +406,18 @@ def edit_artist_submission(artist_id):
 
 @app.route('/artists/<artist_id>', methods=['DELETE'])
 def delete_artist(artist_id):
-  error = False
   try:
     objDel = Artist.query.filter_by(id=artist_id).first() 
     db.session.delete(objDel)
     db.session.commit()
+    flash('The artist was successfully deleted')
   except:
-    error = True
     db.session.rollback()
+    flash("Something went wrong, the artist couldn't be deleted")
   finally:
     db.session.close()
-  if not error:
-        return jsonify({ 'success': True})
-        
-  return jsonify({'success': False})
+   
+  return None
 
 #  Shows
 #  ----------------------------------------------------------------
