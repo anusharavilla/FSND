@@ -1,3 +1,8 @@
+##--------------------------------------------------------##
+'''
+ REFERENCES: API development and documentation section of Full-Stack Developper nanodegree program
+'''
+##--------------------------------------------------------##
 import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -15,12 +20,12 @@ def create_app(test_config=None):
   setup_db(app)
   
   '''
-   Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+   CORS. Allow '*' for origins
   '''
   cors = CORS(app, resources={ r"/*": {"origins": "*"} })
 
   '''
-   Use the after_request decorator to set Access-Control-Allow
+   Using after_request decorator to set Access-Control-Allow for HEADERS: content-type, Authorization, METHODS: GET,POST,DELETE
   '''
   @app.after_request
   def after_request(response):
@@ -28,6 +33,12 @@ def create_app(test_config=None):
     response.headers.add('Access-Control-Allow-Methods', 'GET,POST,DELETE')
     return response
 
+  '''
+   SHOW ALL CATEGORIES
+   Endpoint '/categories' : Handles GET requests for all available categories stored in the Category table. 
+                            This endpoint returns success, total number of categores, list of categories 
+                            Errors other than 422: None
+  '''
   @app.route('/categories', methods=['GET'])
   def get_categories():
     try:
@@ -43,6 +54,15 @@ def create_app(test_config=None):
     except:
       abort(422)
 
+  '''
+   VIEW QUESTIONS IN PAGES
+   Endpoint '/questions' : Handles GET requests for questions. It returns a paginated response with 10 questions per page and 
+                           the page returned is based on input argument page, if page is not specified, page defaults to 1.
+                           This end point returns {id, question, answer, category, difficulty} as questions for all the questions,
+                           total number of questions in all pages as total_questions, categories. It also returns current_category
+                           which can be ignored.
+                           Errors other than 422: This endpoint returns not found(404) if the page specified in the argument doesn't exist.
+  '''
   @app.route('/questions', methods=['GET'])
   def get_questions():
     try:
@@ -68,6 +88,41 @@ def create_app(test_config=None):
     except:
       abort(422)
 
+  '''
+   SEARCH QUESTIONS 
+   Endpoint '/questions' : Handles POST requests for questions. It returns questions based on a searchTerm sent as part of POST request
+                           in json format. This end point returns {id, question, answer, category, difficulty} as questions for all the 
+                           questions containing the searchTerm, number of questions containing search term as total_questions. This search
+                           is case-insensitive. It also returns current_category which can be ignored.
+                           Errors other than 422: This endpoint returns bad request(400) if the searchTerm is not specified in the request.
+                                                  This case is different from the searchTerm being empty.
+  '''
+  @app.route('/questions', methods=['POST'])
+  def search_questions():
+    try:
+      new_term = request.get_json()
+      if new_term is None:
+        raise NameError('abort400')
+      search_term = new_term['searchTerm']
+      questions = Question.query.filter(func.lower(Question.question).like('%'+func.lower(search_term)+'%') ).all()
+      format_questions = [quest.format() for quest in questions]
+      return jsonify({
+        'questions': format_questions,
+        'total_questions': len(format_questions),
+        'current_category': None
+       })
+    except NameError:
+      abort(400)
+    except:
+      abort(422)
+  
+  '''
+   DELETE QUESTION
+   Endpoint '/questions/<question_id>' :  Handles DELETE requests for questions/<question_id>. Deletes the question with question_id as id.
+                                          This end point returns success if question has been deleted successfully.
+                                          Errors other than 422: This endpoint returns not found(404) if the question_id doesn't exist in the
+                                          database.
+  '''
   @app.route('/questions/<question_id>', methods=['DELETE'])
   def delete_question(question_id):
     try:
@@ -83,6 +138,15 @@ def create_app(test_config=None):
     except:
       abort(422)
 
+  '''
+   ADD A NEW QUESTION
+   Endpoint '/addQuestion' : Handles POST requests for addQuestion. It returns success if the question has been added to the database 
+                             successfully. It takes the input needed to add a new question from the POST request in the form of json.
+                             The json input should contain question, answer, category, difficulty.
+                             Errors other than 422: This endpoint returns bad request(400) if json input is not specified in the request.
+                                                    If json input is empty, the category defaults to science, difficulty defaults to 1,
+                                                    the question and answer fields are left empty.
+  '''
   @app.route('/addQuestion', methods=['POST'])
   def add_question():
     try:
@@ -102,26 +166,15 @@ def create_app(test_config=None):
     except:
       abort(422)
 
-  @app.route('/questions', methods=['POST'])
-  def search_questions():
-    try:
-      new_term = request.get_json()
-      if new_term is None:
-        raise NameError('abort400')
-      search_term = new_term['searchTerm']
-      questions = Question.query.filter(func.lower(Question.question).like('%'+func.lower(search_term)+'%') ).all()
-      format_questions = [quest.format() for quest in questions]
-      return jsonify({
-        'questions': format_questions,
-        'total_questions': len(format_questions),
-        'current_category': None
-       })
-    except NameError:
-      abort(400)
-    except:
-      abort(422)
-
-
+  '''
+   VIEW QUESTIONS PER CATEGORY
+   Endpoint '/categories/<category_id>/questions' : 
+                           Handles GET requests for all questions for a specific category based on category_id from the endpoint.
+                           This end point returns {id, question, answer, category, difficulty} as questions for specified category,
+                           total number of questions as total_questions, category_id as current_category. 
+                           Errors other than 422: This endpoint returns not found(404) if the category specified in the argument 
+                                                  doesn't exist in the database.
+  '''
   @app.route('/categories/<category_id>/questions', methods=['GET'])
   def get_questions_by_category(category_id):
     try:
@@ -140,7 +193,13 @@ def create_app(test_config=None):
     except:
       abort(422)
  
-
+  '''
+   PLAY A QUIZ: GET NEXT QUESTION
+   Endpoint '/quizzes': POST endpoint to '/quizzes' to get next question to play the quiz. It takes quiz category and previous questions
+                        as input and returns a new question.
+                        Errors other than 422: This endpoint returns bad request(400) if the json input is not given or if json input is 
+                        not in a specific format. This case is different from an empty json input.
+  '''
   @app.route('/quizzes', methods=['POST'])
   def get_quiz():
     try:
@@ -164,7 +223,10 @@ def create_app(test_config=None):
       abort(400)
     except:
       abort(422)
-
+  
+  '''
+   Error Handlers for all expected errors
+  '''
   @app.errorhandler(404) 
   def not_found(error):
     return jsonify({
