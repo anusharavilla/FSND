@@ -48,6 +48,62 @@ flask run --reload
 
 The `--reload` flag will detect file changes and restart the server automatically.
 
+## Roles and Permissions
+    Public
+        - can GET '/drinks'
+    Barista
+        - can `get:drinks-detail`
+    Manager
+        - can perform all actions( `get:drinks-detail`, `post:drinks`, `patch:drinks`, `delete:drinks`) 
+
+## Endpoints
+'''
+Endpoint: GET /drinks
+        Description:         This method returns the list of all drinks in the database, it doesn't include the entire recipe
+        Permission:          no permission required.
+        Data Representation: Returns only the drink.short() data representation
+        Return data format:  Returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks 
+                             or appropriate status code indicating reason for failure
+'''
+'''
+Endpoint: GET /drinks-detail
+        Description:         This method returns the list of all drinks with recipes in the database
+        Permission:          'get:drinks-detail' permission required.
+        Data Representation: Returns the drink.long() data representation
+        Return data format:  Returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks 
+                             or appropriate status code indicating reason for failure
+'''
+
+'''
+Endpoint: POST /drinks
+        Description:         This method adds a new drink with new information from user and returns the newly added drink information.
+        Permission:          'post:drinks' permission required.
+        Data Representation: Returns the drink.long() data representation
+        Return data format:  Returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
+                             or appropriate status code indicating reason for failure
+        Failure cases:       Responds with a 400 error if input is not given      
+'''
+'''
+Endpoint: PATCH /drinks/<id> , where <id> is the id of the drink
+        Description:         This method updates the drink with id=<id> with new information from user and returns the updated information.
+        Permission:          'patch:drinks' permission required.
+        Data Representation: Returns the drink.long() data representation
+        Return data format:  Returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
+                             or appropriate status code indicating reason for failure
+        Failure cases:       Responds with a 404 error if <id> is not found        
+'''
+'''
+Endpoint: DELETE /drinks/<id>, where <id> is the id of the drink
+        Description:         This method deletes the drink with id=<id> in the database and returns the deleted id.
+        Permission:          'delete:drinks' permission required.
+        Data Representation: Returns the drink.long() data representation
+        Return data format:  Returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
+                             or appropriate status code indicating reason for failure
+        Failure cases:       Responds with a 404 error if <id> is not found        
+'''    
+
+
+
 ## Tasks
 
 ### Setup Auth0

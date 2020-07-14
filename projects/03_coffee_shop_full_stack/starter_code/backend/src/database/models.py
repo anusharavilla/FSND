@@ -7,6 +7,7 @@ database_filename = "database.db"
 project_dir = os.path.dirname(os.path.abspath(__file__))
 database_path = "sqlite:///{}".format(os.path.join(project_dir, database_filename))
 
+
 db = SQLAlchemy()
 
 '''
@@ -33,6 +34,7 @@ def db_drop_and_create_all():
 Drink
 a persistent drink entity, extends the base SQLAlchemy Model
 '''
+
 class Drink(db.Model):
     # Autoincrementing, unique primary key
     id = Column(Integer().with_variant(Integer, "sqlite"), primary_key=True)
@@ -47,7 +49,6 @@ class Drink(db.Model):
         short form representation of the Drink model
     '''
     def short(self):
-        print(json.loads(self.recipe))
         short_recipe = [{'color': r['color'], 'parts': r['parts']} for r in json.loads(self.recipe)]
         return {
             'id': self.id,
